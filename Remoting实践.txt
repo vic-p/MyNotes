@@ -1,0 +1,70 @@
+客户端：
+
+iobj = TrueLore.KBTool.DataServer.Local.Interface.BaseRemotingObj.Token.getKB_Local(TrueLore.KBTool.DataServer.Local.Interface.BaseRemotingObj.token);
+//服务器已经将令牌注销，需要重新申请令牌
+if (iobj == null)
+{
+   TrueLore.KBTool.DataServer.Interface.BaseRemotingObj.GetNewToken(TrueLore.KBTool.DataServer.Local.Interface.BaseRemotingObj.token);
+   iobj = TrueLore.KBTool.DataServer.Local.Interface.BaseRemotingObj.Token.getKB_Local(TrueLore.KBTool.DataServer.Local.Interface.BaseRemotingObj.token);
+}
+
+--------------------------------------------------------------------------------------------------------
+        public TrueLore.KBTool.DataServer.Local.Interface.IKB getKB_Local(string token)
+        {
+            //if (!clientCache.ContainsKey(token)) return null;
+            if (_kb_Local == null)
+                _kb_Local = (TrueLore.KBTool.DataServer.Local.Interface.IKB)Activator.GetObject(typeof(TrueLore.KBTool.DataServer.Local.Interface.IKB),
+                    string.Format(@"http://{0}{1}{2}/{3}.soap", server, port, webSite, SimpleEncryption.GetIKB_Local));
+            return _kb_Local;
+        }
+
+---------------------------------------------------------------------------------------------------------
+        public static string GetIKB_Local
+        {
+            get
+            {
+                //return string.Format("TrueLore.KBTool.DataRemoting.IKB_BeiJingTieLu.{0}",
+                //    Encrypt(privateKey + ConfigurationManager.AppSettings["{2B10BD8E-5D92-4A4D-B7B4-C6A4EB9BBC05}"])
+                //    );
+                return string.Format("TrueLore.KBTool.DataRemoting.IKB_Local.{0}",
+                    TrueLore.KBTool.DataServer.SimpleEncryption.Encrypt(privateKey));
+            }
+        }
+
+-----------------------------------------------------------------------------------------------------------
+
+服务端：
+
+System.Runtime.Remoting.Channels.BinaryClientFormatterSinkProvider binaryClient = new System.Runtime.Remoting.Channels.BinaryClientFormatterSinkProvider();
+System.Runtime.Remoting.Channels.BinaryServerFormatterSinkProvider provider = new System.Runtime.Remoting.Channels.BinaryServerFormatterSinkProvider();
+
+provider.TypeFilterLevel = System.Runtime.Serialization.Formatters.TypeFilterLevel.Full;
+IDictionary props = new Hashtable();
+props["name"] = "http";
+System.Runtime.Remoting.Channels.Http.HttpChannel chan = new System.Runtime.Remoting.Channels.Http.HttpChannel(props, binaryClient, provider);
+System.Runtime.Remoting.Channels.ChannelServices.RegisterChannel(chan, false);
+
+System.Runtime.Remoting.RemotingConfiguration.RegisterActivatedServiceType(typeof(TrueLore.KBTool.DataServer.Local.KB));
+System.Runtime.Remoting.RemotingConfiguration.RegisterWellKnownServiceType
+(
+    typeof(TrueLore.KBTool.DataServer.Local.KB),
+    string.Format("{0}.soap", TrueLore.KBTool.DataServer.Local.SimpleEncryption.GetIKB_Local),
+    System.Runtime.Remoting.WellKnownObjectMode.Singleton
+);
+
+--------------------------------------------------------------------------------------------------------------
+        public static string GetIKB_Local
+        {
+            get
+            {
+                //return string.Format("TrueLore.KBTool.DataRemoting.IKB_BeiJingTieLu.{0}",
+                //    Encrypt(privateKey + ConfigurationManager.AppSettings["{2B10BD8E-5D92-4A4D-B7B4-C6A4EB9BBC05}"])
+                //    );
+                return string.Format("TrueLore.KBTool.DataRemoting.IKB_Local.{0}",
+                    TrueLore.KBTool.DataServer.SimpleEncryption.Encrypt(privateKey));
+            }
+        }
+
+-----------------------------------------------------------------------------------------------------------
+    [Serializable]
+    public class KB : System.MarshalByRefObject, TrueLore.KBTool.DataServer.Local.Interface.IKB

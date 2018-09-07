@@ -1,0 +1,29 @@
+1、找到MSBuild.exe的路径
+  .NET v2.0: 
+  %WinDir%\Microsoft.NET\Framework\v2.0.50727\MSBuild.exe
+  .NET v3.5: 
+  %WinDir%\Microsoft.NET\Framework\v3.5\MSBuild.exe
+  .NET v4.0: 
+  %WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe
+2、win+R，cmd打开命令提示窗口，cd "路径名" 转到MSBuilde.exe路径
+注：也可以把该路径配置到环境变量Path下，这样执行命令时就不用再cd跳到MSBuilde.exe路径了。
+3、打开cmd ,进入项目文件夹 运行 ：msbuild  ****.sln  /P:Configuration=release  编译Release版本 打开bin文件夹中的release文件夹可以看到编译出的程序
+批处理实例*.bat
+@echo off
+call "D:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86   
+MSBuild F:\***.sln /t:Rebuild /P:WarningLevel=2;Configuration=release   //开始编译
+copy F:\***\bin\release\***.exe Z:\Install\InstallFile   //把编译出的程序，拷贝到别的文件夹
+
+4、C:\Windows\Microsoft.NET\Framework\v4.0.30319>cd C:\Windows\Microsoft.NET\Framework\v3.5
+5、C:\Windows\Microsoft.NET\Framework\v3.5>MSBuild D:\Work_Market\SVN\NET\开标系统\云南V3\trunk\监理\Code\Server\Server.sln /P:Configuration=release
+【另：MSBuild.exe "D:\Work_Market\SVN\NET\开标系统\云南V3\trunk\通用\Code\Server\Server.sln" /t:Build /p:Configuration=Debug;TargetFrameworkVersion=v2.0】
+6、成功时会出现Build succeeded.。
+
+
+问题：
+1、IPB_V3.cs(113,195): error CS0241: 不允许有默认参数说明符
+这是因为IPB_V3.cs里的接口由默认参数，v4.0以下的版本不能编译，到v4.0才可以。
+【DataTable 评标结果公示(ProjectInfo projInfo, String ggguid, String bdguid, String strUrl, String strFileName, String strReportName, DateTime submitTime, String BidProjID, List<String> listCNS = null, DataTable dtPW = null);】
+2、【D:\Work_Market\SVN\NET\评标系统\云南V3\trunk\监理\Code\Server\DataRemotingServer\DataRemotingServer.csproj(179,3): error MSB4019: 未找到导入的项目“C:\Program Files (x86)\MS
+Build\Microsoft\VisualStudio\v11.0\WebApplications\Microsoft.WebApplication.targets”。请确认 <Import> 声明中的路径正确，且磁盘上存在该文件。】
+发现“C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\”目录下只有V9.0、v10.0、v14.0,但没有v11.0，把其中一个V10.0复制一份出来，然后命名为v11.0。

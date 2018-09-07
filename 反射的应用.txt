@@ -1,0 +1,22 @@
+反射的应用
+1、获取当前路径下的dll,不要后缀
+   1.1、Assembly assembly = Assembly.Load("dll全名称");   
+2、获取类型：
+   2.1、Type type = assembly.GetType("dll中类的全名称"); 
+   2.2、Type generictype = assembly.GetType("dll中类的全名称'占位值（如3）");  --泛型类获取
+        Type typenew = generictype.MakeGenericType(typeof(类型1),typeof(类型2));
+        object o = Activator.CreateInstance(typenew ); 
+3、创建对象：
+   3.1、object o = Activator.CreateInstance(type);   --实例化一个类，相当于new一个无参构造函数
+   3.2、object o = Activator.CreateInstance(type,new object[]{"参数1","参数2"});   --实例化一个类，相当于new一个含参构造函数
+4、调用方法：
+    4.1、MethodInfo method = type.GetMethod("方法名称");  --无参方法调用
+         method.Invoke(o,null);
+    4.2、MethodInfo method = type.GetMethod("方法名称");  --含参方法调用
+         method.Invoke(o,new object[]{"参数"});
+         method.Invoke(null,new object[]{"参数"}); --静态方法(static)无需传对象
+    4.3、MethodInfo method = type.GetMethod("方法名称"，new Type[]{typeof(类型1)，typeof(类型2)});  --多态方法调用
+         method.Invoke(o,new object[]{"参数1","参数2"});
+    4.4、MethodInfo method = type.GetMethod("方法名称");   --泛型方法调用
+         MethodInfo methodnew = method.MakeGenericMethod(typeof(类型1),typeof(类型2))；
+         method.Invoke(o,new object[]{"参数1","参数2"});

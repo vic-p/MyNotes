@@ -1,0 +1,56 @@
+2018-3-5
+1、AppDomain.CurrentDomain.SetupInformation.ApplicationBase：程序的输出路径目录
+2、单例模式：
+   1）首先，该Singleton的构造函数必须是私有的，以保证客户程序不会通过new（）操作产生一个实例，达到实现单例的目的；
+　 2）因为静态变量的生命周期跟整个应用程序的生命周期是一样的，所以可以定义一个私有的静态全局变量instance来保存该类的唯一实例；
+　 3）必须提供一个全局函数访问获得该实例，并且在该函数提供控制实例数量的功能，即通过if语句判断instance是否已被实例化，如果没有则可以同new（      ）创建一个实例；否则，直接向客户返回一个实例。
+3、父类反射调用子类方法：
+        /// <summary>
+        /// 调用工具栏按钮的处理方法。
+        /// </summary>
+        /// <param name="handler">按钮处理方法名称。</param>
+        private void InvokeToolStripButtonHandler(String handler)
+        {
+            try
+            {
+                MethodInfo method = this.GetType().GetMethod(handler, BindingFlags.Instance | BindingFlags.NonPublic);
+
+                if (method == null)
+                {
+                    TrueLoreMessageBox.ShowInformation("未实现方法【" + handler + "】");
+                }
+                else
+                {
+                    method.Invoke(this, new Object[] { null, EventArgs.Empty });
+                }
+            }
+            catch (Exception ex)
+            {
+                TrueLoreMessageBox.ShowError(ex.GetBaseException().Message, ex);
+            }
+        }
+4、反射生成实例：
+    public static Form CreateForm(string formAssemblyFile, string formFullName, string formArgs, string formName, string formText)
+    {
+      Assembly assembly = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + formAssemblyFile);
+      Form instance;
+      if (formArgs == "0")
+      {
+        instance = assembly.CreateInstance(formFullName, false, BindingFlags.Default, (Binder) null, (object[]) null, (CultureInfo) null, (object[]) null) as Form;
+      }
+      else
+      {
+        object[] args = new object[1]
+        {
+          (object) formArgs
+        };
+        instance = assembly.CreateInstance(formFullName, false, BindingFlags.Default, (Binder) null, args, (CultureInfo) null, (object[]) null) as Form;
+      }
+      if (instance == null)
+        throw new Exception(string.Format("CreateForm失败\nformAssemblyFile={0}\nformFullName={1}\nformArgs={2}\nformName={3}\nformText={4}", (object) formAssemblyFile, (object) formFullName, (object) formArgs, (object) formName, (object) formText));
+      if (!string.IsNullOrEmpty(formName))
+        instance.Name = formName;
+      if (!string.IsNullOrEmpty(formText))
+        instance.Text = formText;
+      return instance;
+    }

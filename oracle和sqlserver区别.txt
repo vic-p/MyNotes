@@ -1,0 +1,87 @@
+1、''和' '区别：
+  在sqlserver中两者没区别，都表示空字符串，而在oracle中，''相当于null，' '才表示空字符串
+  sql语句中null是不能比较的，null=null返回的是false；
+
+2、c#的布尔型在sqlserver和oracle的区别：
+  在sqlserver中布尔型对应bit类型，1位true，0为false，在oracle中则没有与之布尔型对应的类型。
+
+3、oracle的数值类型虽然有int,double,decimal,float类型可以用，但他们底层都是number类型,在c#客户端查询到的数据都是decimal类型的，
+   如果直接把数据强转为int等类型（eg:(int)数据）会产生异常，正确做法是Convert.ToInt32(数据)；
+
+4、exists和not exists 在sqlserver和oracle的区别：
+  在sqlserver中，not exists 可以用在任意地方，在oracle中，not exists 只能用在SQL语句里，不能用在if后面；
+  那么，如果编写oracle脚本时，要想not exists也有像sqlserver的效果怎么办？
+  解决：可以封装一个NOTEXISTS函数，输入参数为SQL字符串，返回一个布尔类型值。
+  eg:---------------------------------------------------------sqlserver的脚本-------------------------------------------------------------------------
+     IF NOT EXISTS(SELECT 1 FROM sysobjects a, syscolumns b WHERE a.ID=b.ID AND a.Name = 'EvalMethod' AND a.xtype = 'U' AND b.Name = '合理低价期望值K')
+     BEGIN
+	ALTER TABLE EvalMethod ADD
+		是否重点水利范本 bit NULL,
+		合理低价期望值K float NULL,
+		拦标价下浮度值B float NULL,
+		拦标价上浮度值C float NULL,
+		标底在评标基准价中所占权重a float NULL,
+		通过初步评审人数 INT NULL;
+     END
+     GO
+     -----------------------------------------------------------------------------------------------------------------------------------------------------
+     --------------------------------------------------------oracle脚本-----------------------------------------------------------------------------------
+     BEGIN
+     IF NOTEXISTS('SELECT 1 FROM user_tab_cols WHERE table_name=''EVALMETHOD'' and column_name=''合理低价期望值K''') THEN
+     execute immediate 'ALTER TABLE EvalMethod ADD
+		(是否重点水利范本 NUMBER NULL,
+		合理低价期望值K NUMBER NULL,
+		拦标价下浮度值B NUMBER NULL,
+		拦标价上浮度值C NUMBER NULL,
+		标底在评标基准价中所占权重a NUMBER NULL,
+		通过初步评审人数 NUMBER NULL)';
+      END IF;
+      END;
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     --------------------------------------------------------NOTEXISTS函数---------------------------------------------------------------------------------
+     CREATE OR REPLACE 
+     FUNCTION NOTEXISTS (IN_SQL IN VARCHAR2)
+     RETURN BOOLEAN-- VARCHAR2
+     AS
+     V_SQL VARCHAR2(4000);
+     V_CNT NUMBER(1);
+     BEGIN
+	-- routine body goes here, e.g.
+	-- DBMS_OUTPUT.PUT_LINE('Navicat for Oracle');
+        V_SQL := 'SELECT COUNT(*) FROM DUAL WHERE EXISTS (' || IN_SQL || ')';
+	EXECUTE IMMEDIATE V_SQL INTO V_CNT;
+        IF V_CNT = 0 THEN
+          RETURN TRUE;
+        ELSE
+          RETURN FALSE;
+        END IF;
+    END;
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5、oracle中的/和sqlserver中的go;
+  /相当于分段，效果和go一样；
+  在oracle脚本中，两个begin...end;的数据块之间必须用/分开，否则报错，脚本的SQL语句都是动态语句
+  动态语句后面不要跟/,否则会阻断下面的语句执行
+
+6、begin..end;里的语句段与动态语句不一样，eg:select * from ## 不行，必须select * into %% from ##，却又跟存储过程不一样，不能直接调用if exists
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
